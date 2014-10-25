@@ -1,6 +1,7 @@
 # README #
 
  tune-s2
+
 tune-s2 is a small linux app I've wrote to be able to tune my dvb devices, all I wanted it todo is control my motor, 
 diseqc and 22khz switch's and tune a signal. From there it waits for the user to press the 'q' button to quit the app. 
 This allows me to use other apps like my demux app or other apps like dvbsnoop and dvbtraffic.
@@ -8,11 +9,13 @@ This allows me to use other apps like my demux app or other apps like dvbsnoop a
 clone repo: 
 
 git clone https://bitbucket.org/updatelee/tune-s2.git
+
 compile:
 
 make
 
 install it:
+
 sudo make install
 
 ./tune-s2 -help
@@ -37,4 +40,3 @@ usage: tune-s2 12224 V 20000 [options]
         -pilot N           : pilot (OFF / ON / AUTO [default])
         -mis N             : MIS #
         -help          : help
-
