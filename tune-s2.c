@@ -90,10 +90,11 @@ int check_frontend (int frontend_fd)
 	if (snr_scale == FE_SCALE_DECIBEL) {
 		snr = p_status.props[1].u.st.stat[0].svalue * .0001;
 	} else {
-		unsigned int snr = 0;
-		if (ioctl(frontend_fd, FE_READ_SNR, &snr) == -1) {
-			snr = 0;
+		unsigned int snr2 = 0;
+		if (ioctl(frontend_fd, FE_READ_SNR, &snr2) == -1) {
+			snr2 = 0;
 		}
+		snr = (float)snr2/10;
 	}
 	ber_scale = p_status.props[2].u.st.stat[0].scale;
 	if (ber_scale == FE_SCALE_COUNTER) {
