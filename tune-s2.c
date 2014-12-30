@@ -212,11 +212,12 @@ int tune(int frontend_fd, struct tune_p *t)
 		{ .cmd = DTV_ROLLOFF },
 		{ .cmd = DTV_BANDWIDTH_HZ },
 		{ .cmd = DTV_PILOT },
-		{ .cmd = DTV_DVBS2_MIS_ID }
+		{ .cmd = DTV_DVBS2_MIS_ID },
+		{ .cmd = DTV_FRAME_LEN }
 	};
 
 	struct dtv_properties p_status = {
-		.num = 12,
+		.num = 13,
 		.props = p
 	};
 
@@ -257,6 +258,9 @@ int tune(int frontend_fd, struct tune_p *t)
 			printf("Pilot:      ON %d \n",p_status.props[10].u.data);
 		else	printf("Pilot:      OFF %d \n",p_status.props[10].u.data);
 		printf("MIS:        %d \n", p_status.props[11].u.data);
+		if(p_status.props[12].u.data == 0)
+			printf("FRAME_LEN:  LONG %d \n", p_status.props[12].u.data);
+		else	printf("FRAME_LEN:  SHORT %d \n", p_status.props[12].u.data);
   		printf("Bandwidth:  %3.4f MHz \n", bw);
   		printf("Data Rate:  %3.4f Mbps \n", dr);
 
