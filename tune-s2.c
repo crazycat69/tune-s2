@@ -76,11 +76,11 @@ int check_frontend (int frontend_fd)
 	if (lvl_scale == FE_SCALE_DECIBEL) {
 		lvl = p_status.props[0].u.st.stat[0].svalue * 0.0001;
 	} else {
-		int lvl;
-		if (ioctl(frontend_fd, FE_READ_SIGNAL_STRENGTH, &lvl) == -1) {
+		int lvl2;
+		if (ioctl(frontend_fd, FE_READ_SIGNAL_STRENGTH, &lvl2) == -1) {
 			lvl = 0;
 		} else {
-			lvl = (lvl * 100) / 0xffff;
+			lvl = (float)lvl2 * 100 / 0xffff;
 			if (lvl < 0) {
 				lvl = 0;
 			}
@@ -105,8 +105,8 @@ int check_frontend (int frontend_fd)
 			ber = 0;
 		}
 	}
-	printf ("status %s | signal %2.1f dBm | snr %2.1f dB | ber %u | ",
-		(status & FE_HAS_LOCK) ? "Locked" : "Unlocked", lvl, snr, ber);
+	printf ("status %s | signal %2.1f %s | snr %2.1f dB | ber %u | ",
+		(status & FE_HAS_LOCK) ? "Locked" : "Unlocked", lvl, (lvl_scale == FE_SCALE_DECIBEL) ? "dBm" : "%", snr, ber);
 	if (status & FE_HAS_LOCK) {
 		printf("FE_HAS_LOCK \n");
  	} else printf("\n");
