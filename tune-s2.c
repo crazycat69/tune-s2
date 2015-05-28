@@ -318,10 +318,8 @@ int tune(int frontend_fd, struct tune_p *t)
 	do
 	{
 		check_frontend(frontend_fd);
-		c = getch();
-//			sleep(1);
-//	                if ( kbhit() )
-//        	                c = kbgetchar(); /* consume the character */
+		if (t->quit != 1)
+			c = getch();
 		switch ( c ) {
 			case 'e':
 				motor_dir(frontend_fd, 0);
@@ -336,7 +334,7 @@ int tune(int frontend_fd, struct tune_p *t)
 				motor_gotox_save(frontend_fd, pmem);
 				break; }
 		}
-	} while(c != 'q');
+	} while(c != 'q' && t->quit != 1);
 	return 0;
 }
 
@@ -358,8 +356,9 @@ char *usage =
 	"	-fec           : fec 1/2, 2/3, 3/4, 3/5, 4/5, 5/6, 6/7, 8/9, 9/10, AUTO\n"
 	"	-rolloff       : rolloff 35=0.35 25=0.25 20=0.20 0=UNKNOWN\n"
 	"	-inversion N   : spectral inversion (OFF / ON / AUTO [default])\n"
-	"	-pilot N	   : pilot (OFF / ON / AUTO [default])\n"
-	"	-mis N   	   : MIS #\n"
+	"	-pilot N       : pilot (OFF / ON / AUTO [default])\n"
+	"	-mis N         : MIS #\n"
+	"	-quit          : quit after tuning, used to time lock aquisition"
 	"	-help          : help\n";
 
 int main(int argc, char *argv[])
@@ -406,6 +405,11 @@ int main(int argc, char *argv[])
 	int a;
 	for( a = 4; a < argc; a++ )
 	{
+		if ( !strcmp(argv[a], "-quit") )
+			t.quit = 1;
+		else
+			t.quit = 0;
+
 		if ( !strcmp(argv[a], "-adapter") )
 			adapter = strtoul(argv[a+1], NULL, 0);
 		if ( !strcmp(argv[a], "-frontend") )
