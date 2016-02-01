@@ -53,7 +53,7 @@ int check_frontend (int frontend_fd)
 	unsigned int snr_scale;
 	float lvl;
 	unsigned int lvl_scale;
-	
+
 	if (ioctl(frontend_fd, FE_READ_STATUS, &status) == -1) {
 		perror("FE_READ_STATUS failed"); 
 	}
@@ -69,9 +69,8 @@ int check_frontend (int frontend_fd)
 
 	if (ioctl(frontend_fd, FE_GET_PROPERTY, &p_status) == -1) {
 		perror("FE_GET_PROPERTY failed");
-		return;
 	}
-		
+
 	lvl_scale = p_status.props[0].u.st.stat[0].scale;
 	if (lvl_scale == FE_SCALE_DECIBEL) {
 		lvl = p_status.props[0].u.st.stat[0].svalue * 0.0001;
@@ -159,7 +158,7 @@ int tune(int frontend_fd, struct tune_p *t)
 	};
 
 	printf("\nTuning specs: \n");
-    printf("System:     %s \n", value2name(p_tune[0].u.data, dvb_system));
+	printf("System:     %s \n", value2name(p_tune[0].u.data, dvb_system));
 	printf("Frequency:  %d %s %d \n", abs(p_tune[1].u.data/1000 + t->LO), value2name(p_tune[2].u.data, dvb_voltage) , p_tune[3].u.data / 1000);
 	printf("22khz:      %s \n", value2name(p_tune[4].u.data, dvb_tone));
 	printf("Modulation: %s \n", value2name(p_tune[5].u.data, dvb_modulation));
@@ -171,7 +170,6 @@ int tune(int frontend_fd, struct tune_p *t)
 
 	if (ioctl(frontend_fd, FE_SET_PROPERTY, &cmdseq_tune) == -1) {
 		perror("FE_SET_PROPERTY TUNE failed");
-		return;
 	}
 	usleep (200000);
 
@@ -191,7 +189,6 @@ int tune(int frontend_fd, struct tune_p *t)
 	{
 		if (ioctl(frontend_fd, FE_READ_STATUS, &status) == -1) {
 			perror("FE_READ_STATUS failed");
-			return;
 		}
 
 		if (status & FE_HAS_LOCK || status & FE_TIMEDOUT)
@@ -243,9 +240,9 @@ int tune(int frontend_fd, struct tune_p *t)
 		sscanf (value2name(p_status.props[6].u.data, dvb_fec), "%d/%d", &num, &den);
 		fec_result = ((float)num/den);
 		if (p_status.props[0].u.data < 6)
-			dr = ((p_status.props[3].u.data / 1000) * fec_result * 188/204 * m)/1000;	
-		else  
-			dr = ((p_status.props[3].u.data / 1000) * fec_result * 0.98 * m)/1000;	
+			dr = ((p_status.props[3].u.data / 1000) * fec_result * 188/204 * m)/1000;
+		else
+			dr = ((p_status.props[3].u.data / 1000) * fec_result * 0.98 * m)/1000;
 		printf("Tuned specs: \n");
 		printf("System:     %s %d \n", value2name(p_status.props[0].u.data, dvb_system), p_status.props[0].u.data);
 		printf("Frequency:  %d %s %d \n", abs(p_status.props[1].u.data/1000 + t->LO), value2name(p_status.props[2].u.data, dvb_voltage) , p_status.props[3].u.data / 1000);
@@ -309,7 +306,7 @@ int tune(int frontend_fd, struct tune_p *t)
 		int j;
 		for (j = 0; j < 30; j++)
 		{
-			if(current_modcode == cn[j].modcode) {  
+			if(current_modcode == cn[j].modcode) {
 				printf("CN Failure: %2.1f dB \n\n", cn[j].cn);
 		}
 			else ;
@@ -495,7 +492,7 @@ int main(int argc, char *argv[])
 		t.freq = abs(t.freq - abs(t.LO));;
 	}
 	if(servo >= 1000) {
-		servo = 1000; 
+		servo = 1000;
 	} else if(servo <= 20) {
 		servo = 20;
 	}
