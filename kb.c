@@ -40,7 +40,7 @@ int kbgetchar()
     }
 }
 
-char getch(void) 
+char getch(void)
 {
 	char buf = 0;
 	struct termios old = {0};

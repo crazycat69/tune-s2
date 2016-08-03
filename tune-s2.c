@@ -61,7 +61,7 @@ int check_frontend (int frontend_fd)
 	unsigned int snr_scale;
 	float lvl;
 	unsigned int lvl_scale;
-	
+
 	if (ioctl(frontend_fd, FE_READ_STATUS, &status) == -1) {
 		perror("FE_READ_STATUS failed"); 
 	}
@@ -77,18 +77,17 @@ int check_frontend (int frontend_fd)
 
 	if (ioctl(frontend_fd, FE_GET_PROPERTY, &p_status) == -1) {
 		perror("FE_GET_PROPERTY failed");
-		return;
 	}
-		
+
 	lvl_scale = p_status.props[0].u.st.stat[0].scale;
 	if (lvl_scale == FE_SCALE_DECIBEL) {
 		lvl = p_status.props[0].u.st.stat[0].svalue * 0.001;
 	} else {
-		int lvl;
-		if (ioctl(frontend_fd, FE_READ_SIGNAL_STRENGTH, &lvl) == -1) {
+		int lvl2;
+		if (ioctl(frontend_fd, FE_READ_SIGNAL_STRENGTH, &lvl2) == -1) {
 			lvl = 0;
 		} else {
-			lvl = (lvl * 100) / 0xffff;
+			lvl = (float)lvl2 * 100 / 0xffff;
 			if (lvl < 0) {
 				lvl = 0;
 			}
@@ -98,10 +97,11 @@ int check_frontend (int frontend_fd)
 	if (snr_scale == FE_SCALE_DECIBEL) {
 		snr = p_status.props[1].u.st.stat[0].svalue * .001;
 	} else {
-		unsigned int snr = 0;
-		if (ioctl(frontend_fd, FE_READ_SNR, &snr) == -1) {
-			snr = 0;
+		unsigned int snr2 = 0;
+		if (ioctl(frontend_fd, FE_READ_SNR, &snr2) == -1) {
+			snr2 = 0;
 		}
+		snr = (float)snr2/10;
 	}
 	ber_scale = p_status.props[2].u.st.stat[0].scale;
 	if (ber_scale == FE_SCALE_COUNTER) {
@@ -112,8 +112,8 @@ int check_frontend (int frontend_fd)
 			ber = 0;
 		}
 	}
-	printf ("status %s | signal %2.1f dBm | snr %2.1f dB | ber %u | ",
-		(status & FE_HAS_LOCK) ? "Locked" : "Unlocked", lvl, snr, ber);
+	printf ("status %s | signal %2.1f %s | snr %2.1f dB | ber %u | ",
+		(status & FE_HAS_LOCK) ? "Locked" : "Unlocked", lvl, (lvl_scale == FE_SCALE_DECIBEL) ? "dBm" : "%", snr, ber);
 	if (status & FE_HAS_LOCK) {
 		printf("FE_HAS_LOCK \n");
  	} else printf("\n");
@@ -166,7 +166,7 @@ int tune(int frontend_fd, struct tune_p *t)
 	};
 
 	printf("\nTuning specs: \n");
-    printf("System:     %s \n", value2name(p_tune[0].u.data, dvb_system));
+	printf("System:     %s \n", value2name(p_tune[0].u.data, dvb_system));
 	printf("Frequency:  %d %s %d \n", abs(p_tune[1].u.data/1000 + t->LO), value2name(p_tune[2].u.data, dvb_voltage) , p_tune[3].u.data / 1000);
 	printf("22khz:      %s \n", value2name(p_tune[4].u.data, dvb_tone));
 	printf("Modulation: %s \n", value2name(p_tune[5].u.data, dvb_modulation));
@@ -178,7 +178,6 @@ int tune(int frontend_fd, struct tune_p *t)
 
 	if (ioctl(frontend_fd, FE_SET_PROPERTY, &cmdseq_tune) == -1) {
 		perror("FE_SET_PROPERTY TUNE failed");
-		return;
 	}
 	usleep (200000);
 
@@ -198,7 +197,6 @@ int tune(int frontend_fd, struct tune_p *t)
 	{
 		if (ioctl(frontend_fd, FE_READ_STATUS, &status) == -1) {
 			perror("FE_READ_STATUS failed");
-			return;
 		}
 
 		if (status & FE_HAS_LOCK || status & FE_TIMEDOUT)
@@ -249,9 +247,9 @@ int tune(int frontend_fd, struct tune_p *t)
 		sscanf (value2name(p_status.props[6].u.data, dvb_fec), "%d/%d", &num, &den);
 		fec_result = ((float)num/den);
 		if (p_status.props[0].u.data < 6)
-			dr = ((p_status.props[3].u.data / 1000) * fec_result * 188/204 * m)/1000;	
-		else  
-			dr = ((p_status.props[3].u.data / 1000) * fec_result * 0.98 * m)/1000;	
+			dr = ((p_status.props[3].u.data / 1000) * fec_result * 188/204 * m)/1000;
+		else
+			dr = ((p_status.props[3].u.data / 1000) * fec_result * 0.98 * m)/1000;
 		printf("Tuned specs: \n");
 		printf("System:     %s %d \n", value2name(p_status.props[0].u.data, dvb_system), p_status.props[0].u.data);
 		printf("Frequency:  %d %s %d \n", abs(p_status.props[1].u.data/1000 + t->LO), value2name(p_status.props[2].u.data, dvb_voltage) , p_status.props[3].u.data / 1000);
@@ -312,7 +310,7 @@ int tune(int frontend_fd, struct tune_p *t)
 		int j;
 		for (j = 0; j < 30; j++)
 		{
-			if(current_modcode == cn[j].modcode) {  
+			if(current_modcode == cn[j].modcode) {
 				printf("CN Failure: %2.1f dB \n\n", cn[j].cn);
 		}
 			else ;
@@ -321,10 +319,8 @@ int tune(int frontend_fd, struct tune_p *t)
 	do
 	{
 		check_frontend(frontend_fd);
-		c = getch();
-//			sleep(1);
-//	                if ( kbhit() )
-//        	                c = kbgetchar(); /* consume the character */
+		if (t->quit != 1)
+			c = getch();
 		switch ( c ) {
 			case 'e':
 				motor_dir(frontend_fd, 0);
@@ -339,7 +335,7 @@ int tune(int frontend_fd, struct tune_p *t)
 				motor_gotox_save(frontend_fd, pmem);
 				break; }
 		}
-	} while(c != 'q');
+	} while(c != 'q' && t->quit != 1);
 	return 0;
 }
 
@@ -361,8 +357,9 @@ char *usage =
 	"	-fec           : fec 1/2, 2/3, 3/4, 3/5, 4/5, 5/6, 6/7, 8/9, 9/10, AUTO\n"
 	"	-rolloff       : rolloff 35=0.35 25=0.25 20=0.20 0=UNKNOWN\n"
 	"	-inversion N   : spectral inversion (OFF / ON / AUTO [default])\n"
-	"	-pilot N	   : pilot (OFF / ON / AUTO [default])\n"
-	"	-mis N   	   : MIS #\n"
+	"	-pilot N       : pilot (OFF / ON / AUTO [default])\n"
+	"	-mis N         : MIS #\n"
+	"	-quit          : quit after tuning, used to time lock aquisition"
 	"	-help          : help\n";
 
 int main(int argc, char *argv[])
@@ -409,6 +406,11 @@ int main(int argc, char *argv[])
 	int a;
 	for( a = 4; a < argc; a++ )
 	{
+		if ( !strcmp(argv[a], "-quit") )
+			t.quit = 1;
+		else
+			t.quit = 0;
+
 		if ( !strcmp(argv[a], "-adapter") )
 			adapter = strtoul(argv[a+1], NULL, 0);
 		if ( !strcmp(argv[a], "-frontend") )
@@ -494,7 +496,7 @@ int main(int argc, char *argv[])
 		t.freq = abs(t.freq - abs(t.LO));;
 	}
 	if(servo >= 1000) {
-		servo = 1000; 
+		servo = 1000;
 	} else if(servo <= 20) {
 		servo = 20;
 	}

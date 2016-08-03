@@ -62,6 +62,7 @@ struct tune_p
 	int voltage;
 	int tone;
 	int LO;
+	int quit;
 };
 
 struct options
